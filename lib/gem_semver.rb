@@ -1,5 +1,7 @@
-require "gem_semver/version"
+
+require 'pry'
 
 module GemSemver
-  # Your code goes here...
+  require_relative "./gem_semver/version"
+  require_relative "./gem_semver/version_updater"
 end
