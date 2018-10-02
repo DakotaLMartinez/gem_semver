@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["dakotaleemusic@gmail.com"]
 
   spec.summary       = %q{Updates the version of your Gem (use in conjunction with rake release)}
-  spec.description   = %q{Updates the version of your Gem (use in conjunction with rake release)}
+  spec.description   = %q{Updates the version of your Gem (use in conjunction with rake release)Running `bump major` will result in a major version change, `bump minor` results in a minor version change, and `bump patch` results in a patch version change.}
   spec.homepage      = "https://github.com/DakotaLMartinez/gem_semver"
   spec.license       = "MIT"
 
