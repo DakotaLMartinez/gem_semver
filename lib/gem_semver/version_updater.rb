@@ -1,5 +1,5 @@
 class GemSemver::VersionUpdater 
-  attr_accessor :update_type, :output, :gem_name, :version_file_path, :file, :current_version, :current_major_version,  :current_minor_version, :current_patch_version, :new_version
+  attr_accessor :update_type, :output, :gem_name, :version_file_path, :version_file, :current_version, :current_major_version,  :current_minor_version, :current_patch_version, :new_version
 
   def initialize(type:)
     @update_type = type ? type.downcase : nil
@@ -20,7 +20,13 @@ class GemSemver::VersionUpdater
     elsif !File.exist?(version_file_path)
       @output << "Current directory doesn't have a version.rb file at: "
       @output << "#{Dir.pwd}/lib/#{gem_name}/version.rb"
-      @output << "Make sure you're in the root directory of your gem and that the lib/#{gem_name}/version.rb file exists"
+      @output << "Make sure you're in the root directory of your gem and that the"
+      @output << "lib/#{gem_name}/version.rb file exists."
+    elsif !File.exist?(File.join(Dir.pwd, "Gemfile.lock"))
+      @output << "Current directory doesn't have a Gemfile.lock in it"
+      @output << "Make sure you're in the root directory of your gem and that the"
+      @output << "Gemfile.lock file exists (fill in the required fields in your"
+      @output << "gemspec and run bundle install to create it)."
     else
       @output.pop
       update_version
@@ -44,26 +50,39 @@ class GemSemver::VersionUpdater
     end
     @new_version = [current_major_version, current_minor_version, current_patch_version].join('.')
     @output << "Current version: #{new_version}"
-    update_file
+    update_version_file
+    update_gemfile_lock
   end
 
   def capture_version_number
-    @file = File.open(version_file_path)
-    content = @file.read
+    @version_file = File.open(version_file_path)
+    content = @version_file.read
     @current_version = content.scan(/['"]([^"]*)['"]/)[0][0]
     @current_major_version, @current_minor_version, @current_patch_version = @current_version.split('.')
-    @file.close
+    @version_file.close
   end
 
-  def update_file 
+  def update_version_file 
     tmp = Tempfile.new("new_version") 
-    File.foreach(@file) do |line|
+    File.foreach(@version_file) do |line|
       tmp << line.gsub(current_version, new_version)
     end
     tmp.close
-    FileUtils.rm(["#{file.path}.bak"]) if File.exist?("#{file.path}.bak")
-    FileUtils.cp(file.path,"#{file.path}.bak")
-    FileUtils.mv(tmp,file.path)
+    FileUtils.rm(["#{version_file.path}.bak"]) if File.exist?("#{version_file.path}.bak")
+    FileUtils.cp(version_file.path, "#{version_file.path}.bak")
+    FileUtils.mv(tmp, version_file.path)
+  end
+
+  def update_gemfile_lock
+    tmp = Tempfile.new("new_gemfile_lock")
+    gemfile_lock = File.open(File.join(Dir.pwd, "Gemfile.lock"))
+    File.foreach(gemfile_lock) do |line|
+      tmp << line.gsub("#{gem_name} (#{current_version})", "#{gem_name} (#{new_version})")
+    end
+    tmp.close
+    FileUtils.rm(["#{gemfile_lock.path}.bak"]) if File.exist?("#{gemfile_lock.path}.bak")
+    FileUtils.cp(gemfile_lock.path, "#{gemfile_lock.path}.bak")
+    FileUtils.mv(tmp, gemfile_lock.path)
   end
 
   def print_output
