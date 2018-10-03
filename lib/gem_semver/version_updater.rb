@@ -14,9 +14,11 @@ class GemSemver::VersionUpdater
     @output << "Whoops! Something went wrong"
     if !update_type
       @output << "Make sure you pass an argument: (bump minor)"
-    elsif !["major", "minor", "patch"].include?(update_type)
+    elsif !["major", "minor", "patch", "clean"].include?(update_type)
       @output << "Make sure to specify the type of update (major | minor | patch)"
       @output << "Run one of these: bump major | bump minor | bump patch"
+      @output << "You can also run `bump clean` to remove the 2 .bak files"
+      @output << "created by updating the version number."
     elsif !File.exist?(version_file_path)
       @output << "Current directory doesn't have a version.rb file at: "
       @output << "#{Dir.pwd}/lib/#{gem_name}/version.rb"
@@ -29,23 +31,37 @@ class GemSemver::VersionUpdater
       @output << "gemspec and run bundle install to create it)."
     else
       @output.pop
+      handle_update_type
+    end
+  end
+
+  def handle_update_type
+    if update_type == "clean"
+      delete_bak_files
+    else
       update_version
     end
+  end
+
+  def delete_bak_files
+    FileUtils.remove_file("#{version_file_path}.bak") if File.exist?("#{version_file_path}.bak")
+    FileUtils.remove_file(File.join(Dir.pwd, "Gemfile.lock.bak")) if File.exist?(File.join(Dir.pwd, "Gemfile.lock.bak"))
+    @output << ".bak files deleted"
   end
 
   def update_version
     capture_version_number
     if update_type == "major"
-      @current_major_version = (current_major_version.to_i + 1).to_s
+      @current_major_version = add_one(current_major_version)
       @current_minor_version = "0"
       @current_patch_version = "0"
       @output << "Major version change:"
     elsif update_type == "minor"
-      @current_minor_version = (current_minor_version.to_i + 1).to_s
+      @current_minor_version = add_one(current_minor_version)
       @current_patch_version = "0"
       @output << "Minor version change:"
     elsif update_type == "patch"
-      @current_patch_version = (current_patch_version.to_i + 1).to_s
+      @current_patch_version = add_one(current_patch_version)
       @output << "Patch version change:"
     end
     @new_version = [current_major_version, current_minor_version, current_patch_version].join('.')
@@ -60,6 +76,10 @@ class GemSemver::VersionUpdater
     @current_version = content.scan(/['"]([^"]*)['"]/)[0][0]
     @current_major_version, @current_minor_version, @current_patch_version = @current_version.split('.')
     @version_file.close
+  end
+
+  def add_one(string)
+    (string.to_i + 1).to_s
   end
 
   def update_version_file 
@@ -86,8 +106,7 @@ class GemSemver::VersionUpdater
   end
 
   def print_output
-    output.each { |m| puts m }
+    output.each { |message| puts message }
   end
-
 
 end
