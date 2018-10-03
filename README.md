@@ -1,28 +1,30 @@
 # GemSemver
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/gem_semver`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This gem adds the `bump` command to your path so you can update the version of your gem using semantic versioning. It does not create commits, it just updates 
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'gem_semver'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
+Run this command in your terminal:
 
     $ gem install gem_semver
 
 ## Usage
 
-TODO: Write usage instructions here
+```bump major```
+
+Updates the major version number and resets the minor and patch version numbers to 0. Also creates a backup of the Gemfile.lock and the version.rb.
+
+```bump minor```
+
+Updates the minor version number and resets the patch version number to 0. Also creates a backup of the Gemfile.lock and the version.rb.
+
+```bump patch```
+
+Updates the patch version number. Also creates a backup of the Gemfile.lock and the version.rb.
+
+```bump clean```
+
+Removes the .bak files created by running any of the version bumps. The backups are created just in case of a power outage or accidental shutoff before the update completes. Once you're happy with 
 
 ## Development
 
